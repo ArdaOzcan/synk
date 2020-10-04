@@ -1,0 +1,81 @@
+package org.ardaozcan.net;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.nio.file.Paths;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
+import org.ardaozcan.Manager;
+import org.ardaozcan.io.Logger;
+
+public class Client {
+    ClientData socket;
+    final Manager manager;
+
+    public Client(Manager manager) {
+        this.manager = manager;
+    }
+
+    public void connect(String ip, int port) throws IOException {
+        Socket localSocket;
+        try {
+            localSocket = new Socket(ip, port);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        this.socket = new ClientData(localSocket);
+        authenticate(System.console().readLine("Directory pass: "));
+    }
+
+    public String read(String msg) throws IOException {
+        return this.socket.input.readAllBytes().toString();
+    }
+
+    public void authenticate(String code) throws IOException {
+        socket.send(new Gson().toJson(new RequestMessage("authenticate", code)));
+    }
+
+    public void get() {
+        try {
+            socket.send(new Gson().toJson(new RequestMessage("getDirectory")));
+            boolean eof = false;
+            while (!eof) {
+                byte[] response = socket.read();
+
+                try {
+                    FileResponseMessage fileResponse = new Gson().fromJson(new String(response),
+                            FileResponseMessage.class);
+                    Logger.logInfo("Message type: '" + fileResponse.messageType + "'");
+
+                    switch (fileResponse.messageType) {
+                        case "file":
+                            if (!fileResponse.fileName.equals(manager.DOT_SYNK_FILENAME)) {
+                                System.out.println("Got file " + fileResponse.fileName);
+                                String filePath = Paths.get(manager.ROOT_PATH, fileResponse.fileName)
+                                        .toString();
+                                try (FileOutputStream fos = new FileOutputStream(filePath)) {
+                                    fos.write(fileResponse.fileData);
+                                }
+                            }
+                            break;
+                        case "eof":
+                            eof = true;
+                            break;
+                    }
+                } catch (JsonSyntaxException e) {
+                    Logger.logError("Wrong message format");
+                }
+            }
+
+            Logger.logInfo("Got all.");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
