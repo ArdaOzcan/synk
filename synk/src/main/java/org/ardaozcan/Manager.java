@@ -69,7 +69,7 @@ public class Manager {
         if(cmd != null) {
             switch(cmd) {
                 case "serve":
-                    new ServerThread("192.168.1.137", 4902, this).start();
+                    new ServerThread("192.168.1.65", 4902, this).start();
                     break;
                 case "connect":
                     try {

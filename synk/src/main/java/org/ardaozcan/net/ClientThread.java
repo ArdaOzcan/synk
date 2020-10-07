@@ -2,6 +2,7 @@ package org.ardaozcan.net;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
@@ -68,14 +69,16 @@ public class ClientThread extends Thread {
                         case "disconnect":
                             running = false;
                             break;
-
                     }
                 } catch (JsonSyntaxException e) {
                     Logger.logInfo("Wrong message format");
                 }
 
-            } catch (IOException e) {
+            } catch (SocketException e) {
                 e.printStackTrace();
+                break;
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
         } while (running && authenticated);
 
