@@ -27,12 +27,13 @@ public class Manager {
     Client client = null;
 
     public Manager(String rootPath) throws FileNotFoundException, IOException {
-        this.ROOT_PATH = rootPath;
+        this.ROOT_PATH = new File(rootPath).getCanonicalPath();
+        System.out.println(Paths.get(ROOT_PATH, DOT_SYNK_FILENAME).toAbsolutePath());
     }
 
     public void initializeDirectory() throws FileNotFoundException, IOException {
         Path absPath = Paths.get(ROOT_PATH, DOT_SYNK_FILENAME).toAbsolutePath();
-        if(Files.exists(absPath)) {
+        if (Files.exists(absPath)) {
             this.config = new Parser(absPath.toString()).parse();
             return;
         }
@@ -47,7 +48,7 @@ public class Manager {
             writer.write(String.format("code: %s", hashedCode));
             writer.close();
             Logger.logInfo(String.format("Directory initialized in '%s'.", absPath));
-            
+
         } catch (IOException e) {
             Logger.logError("An error occurred.");
             e.printStackTrace();
@@ -65,15 +66,20 @@ public class Manager {
         getInput();
     }
 
-    public void executeCommand(String cmd) {
-        if(cmd != null) {
-            switch(cmd) {
+    public void executeCommand(String input) {
+        String[] args = input.split(" ");
+        if (args.length == 0) {
+            return;
+        }
+        String cmd = args[0];
+        if (cmd != null) {
+            switch (cmd) {
                 case "serve":
                     new ServerThread("192.168.1.65", 4902, this).start();
                     break;
                 case "connect":
                     try {
-                        if(this.client == null) {
+                        if (this.client == null) {
                             this.client = new Client(this);
                         }
 
@@ -87,7 +93,7 @@ public class Manager {
                     break;
             }
         }
-        
+
         getInput();
     }
 }
