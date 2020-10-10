@@ -21,12 +21,7 @@ public class Client {
 
     public void connect(String ip, int port) throws IOException {
         Socket localSocket;
-        try {
-            localSocket = new Socket(ip, port);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
+        localSocket = new Socket(ip, port);
 
         this.socket = new ClientData(localSocket);
         authenticate(System.console().readLine("Directory pass: "));
@@ -45,7 +40,7 @@ public class Client {
             socket.send(new Gson().toJson(new RequestMessage("getDirectory")));
             boolean eof = false;
             while (!eof) {
-                byte[] response = socket.read();
+                byte[] response = socket.receive();
 
                 try {
                     FileResponseMessage fileResponse = new Gson().fromJson(new String(response),

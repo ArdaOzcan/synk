@@ -21,13 +21,16 @@ public class Server {
         PORT = port;
 
         this.manager = manager;
-
-        socket = new ServerSocket(PORT, 50, InetAddress.getByName(IP));
+        if (IP != null) {
+            socket = new ServerSocket(PORT, 50, InetAddress.getByName(IP));
+        } else {
+            socket = new ServerSocket(PORT);
+        }
     }
 
     public void serve() {
         Logger.logInfo("Started server on address " + IP + ":" + PORT);
-        while(true) {
+        while (true) {
             try {
                 Socket client = socket.accept();
                 ClientData data = new ClientData(client);

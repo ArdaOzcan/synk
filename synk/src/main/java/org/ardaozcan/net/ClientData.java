@@ -18,7 +18,7 @@ public class ClientData {
         this.output = socket.getOutputStream();
     }
 
-    public byte[] read() throws IOException {
+    public byte[] receive() throws IOException {
         byte[] header = input.readNBytes(ClientThread.HEADER_SIZE);
         int msgLength = Integer.parseInt(new String(header).strip());
 

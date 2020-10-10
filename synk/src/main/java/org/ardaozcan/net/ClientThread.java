@@ -45,13 +45,35 @@ public class ClientThread extends Thread {
 
     @Override
     public void run() {
-        Logger.logInfo("Started thread for " + client.ip);
         boolean running = true;
         boolean authenticated = false;
-        do {
+        try {
+            byte[] msg = client.receive();
+            try {
+                RequestMessage requestMsg = new Gson().fromJson(new String(msg), RequestMessage.class);
+
+                if (requestMsg.messageType.equals("authenticate")) {
+                    System.out.println();
+                    String hashed = Hashing.sha256().hashString(requestMsg.code, StandardCharsets.UTF_8).toString();
+                    authenticated = hashed.trim().equals(manager.config.code.trim());
+                }
+            } catch (JsonSyntaxException e) {
+                Logger.logError("Wrong message format");
+            }
+        } catch (IOException | NumberFormatException e) {
+            return;
+        } 
+
+        if(!authenticated) {
+            return;
+        }
+
+        Logger.logInfo("Started thread for " + client.ip);
+
+        while (running && authenticated) {
             try {
                 Logger.logInfo("Waiting for client...");
-                byte[] msg = client.read();
+                byte[] msg = client.receive();
 
                 try {
                     RequestMessage requestMsg = new Gson().fromJson(new String(msg), RequestMessage.class);
@@ -61,17 +83,15 @@ public class ClientThread extends Thread {
                         case "getDirectory":
                             sendDirectory();
                             break;
-                        case "authenticate":
-                            System.out.println();
-                            String hashed = Hashing.sha256().hashString(requestMsg.code, StandardCharsets.UTF_8).toString();
-                            authenticated = hashed.trim().equals(manager.config.code.trim());
-                            break;
                         case "disconnect":
                             running = false;
                             break;
+                        default:
+                            Logger.logError(String.format("Wrong message type '%s'", requestMsg.messageType));
+                            break;
                     }
                 } catch (JsonSyntaxException e) {
-                    Logger.logInfo("Wrong message format");
+                    Logger.logError("Wrong message format");
                 }
 
             } catch (SocketException e) {
@@ -80,7 +100,7 @@ public class ClientThread extends Thread {
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
-        } while (running && authenticated);
+        }
 
         try {
             client.input.close();
