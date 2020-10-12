@@ -14,11 +14,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.hash.Hashing;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import org.ardaozcan.dotsynk.Config;
 import org.ardaozcan.dotsynk.Parser;
 import org.ardaozcan.io.Logger;
 import org.ardaozcan.net.Client;
+import org.ardaozcan.net.ClientData;
+import org.ardaozcan.net.message.RequestMessage;
+import org.ardaozcan.net.message.ServerInformationResponseMessage;
+import org.ardaozcan.net.ServerInformation;
 import org.ardaozcan.net.ServerThread;
 
 public class Manager {
@@ -26,6 +32,7 @@ public class Manager {
     public final String ROOT_PATH;
     public final String DOT_SYNK_FILENAME = ".synk";
     public final int PORT = 4902;
+    public final String VERSION = "v1.0";
 
     public Config config;
 
@@ -43,13 +50,17 @@ public class Manager {
         }
 
         String code = System.console().readLine("Directory pass: ");
+        String serverName = System.console().readLine("Server name: ");
+        serverName = serverName.toLowerCase().replace(' ', '-');
         String hashedCode = Hashing.sha256().hashString(code, StandardCharsets.UTF_8).toString();
 
         try {
             File file = new File(absPath.toString());
             file.createNewFile();
             FileWriter writer = new FileWriter(file);
-            writer.write(String.format("code: %s", hashedCode));
+            writer.write(String.format("code: %s\n", hashedCode));
+            writer.write(String.format("name: %s\n", serverName));
+            writer.write(String.format("version: %s\n", VERSION));
             writer.close();
             Logger.logInfo(String.format("Directory initialized in '%s'.", absPath));
 
@@ -101,7 +112,7 @@ public class Manager {
                     }
                     break;
                 case "get":
-                    if(client != null) {
+                    if (client != null) {
                         client.get();
                     } else {
                         Logger.logError("You are not connected to any servers.");
@@ -117,65 +128,90 @@ public class Manager {
     }
 
     public void listAvailableServers() {
-        List<String> networkIPs = getNetworkIPs();
+        List<ServerInformation> infos = getServerInformations();
         System.out.println("-----SERVERS-----");
-        for (String ip : networkIPs) {
-            System.out.println(ip);
+        for (ServerInformation info : infos) {
+            System.out.println(info);
         }
         System.out.println("-----------------");
     }
 
-    public boolean synkServerOpen(String ip) throws IOException {
+    public ServerInformation synkServerOpen(String ip) throws IOException {
         Socket s;
         try {
             s = new Socket(ip, PORT);
         } catch (IOException e) {
-            return false;
+            return null;
+        }
+
+        ClientData cd = new ClientData(s);
+
+        try {
+            cd.send(new Gson().toJson(new RequestMessage("getServerInformation")));
+            
+            byte[] response = cd.receive();
+
+            try {
+                ServerInformationResponseMessage infoResponse = new Gson().fromJson(new String(response),
+                        ServerInformationResponseMessage.class);
+
+                switch (infoResponse.messageType) {
+                    case "serverInfo":
+                        return new ServerInformation(ip, infoResponse.name, infoResponse.version);
+                }
+            } catch (JsonSyntaxException e) {
+                Logger.logError("Wrong message format");
+            }
+            
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         s.close();
-        return true;
+        return new ServerInformation(ip, null, null);
     }
 
-    public List<String> getNetworkIPs() {
+    public List<ServerInformation> getServerInformations() {
         final byte[] ip;
-        List<String> ips = new ArrayList<>();
+        List<ServerInformation> infos = new ArrayList<>();
         try {
             ip = InetAddress.getLocalHost().getAddress();
         } catch (Exception e) {
-            return ips; // exit method, otherwise "ip might not have been initialized"
+            return infos; // exit method, otherwise "ip might not have been initialized"
         }
         Thread lastThread = null;
 
         for (int i = 1; i <= 254; i++) {
-            final int j = i; // i as non-final variable cannot be referenced from inner class
-            lastThread = new Thread(new Runnable() { // new thread for parallel execution
+            final int j = i;
+            lastThread = new Thread(new Runnable() { 
                 public void run() {
                     try {
                         ip[3] = (byte) j;
                         InetAddress address = InetAddress.getByAddress(ip);
                         String output = address.toString().substring(1);
-                        if (address.isReachable(5000)){
-                            if(synkServerOpen(output)) {
-                                ips.add(output);
+                        if (address.isReachable(5000)) {
+                            ServerInformation si = synkServerOpen(output);
+                            if (si != null) {
+                                infos.add(si);
                             }
-                        } 
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
             });
-            lastThread.start(); // dont forget to start the thread
+            lastThread.start(); 
         }
 
         try {
-            if(lastThread != null) {
+            if (lastThread != null) {
                 lastThread.join();
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        return ips;
+        return infos;
     }
 }

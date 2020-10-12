@@ -13,6 +13,9 @@ import com.google.gson.JsonSyntaxException;
 import org.ardaozcan.Manager;
 import org.ardaozcan.io.FileManager;
 import org.ardaozcan.io.Logger;
+import org.ardaozcan.net.message.FileResponseMessage;
+import org.ardaozcan.net.message.RequestMessage;
+import org.ardaozcan.net.message.ServerInformationResponseMessage;
 
 public class ClientThread extends Thread {
     final ClientData client;
@@ -31,6 +34,10 @@ public class ClientThread extends Thread {
 
         String msg = new Gson().toJson(new FileResponseMessage("file", fileName, fileData));
         client.send(msg);
+    }
+
+    void sendServerInformation(ServerInformation info) throws IOException {
+        client.send(new Gson().toJson(new ServerInformationResponseMessage(info)));
     }
 
     void sendDirectory() throws IOException {
@@ -52,10 +59,15 @@ public class ClientThread extends Thread {
             try {
                 RequestMessage requestMsg = new Gson().fromJson(new String(msg), RequestMessage.class);
 
-                if (requestMsg.messageType.equals("authenticate")) {
-                    System.out.println();
-                    String hashed = Hashing.sha256().hashString(requestMsg.code, StandardCharsets.UTF_8).toString();
-                    authenticated = hashed.trim().equals(manager.config.code.trim());
+                switch (requestMsg.messageType) {
+                    case "authenticate":
+                        System.out.println();
+                        String hashed = Hashing.sha256().hashString(requestMsg.code, StandardCharsets.UTF_8).toString();
+                        authenticated = hashed.trim().equals(manager.config.code.trim());
+                        break;
+                    case "getServerInformation":
+                        sendServerInformation(new ServerInformation(client.ip, manager.config));
+                        break;
                 }
             } catch (JsonSyntaxException e) {
                 Logger.logError("Wrong message format");

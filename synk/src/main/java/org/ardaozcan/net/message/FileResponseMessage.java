@@ -1,8 +1,8 @@
-package org.ardaozcan.net;
+package org.ardaozcan.net.message;
 
 public class FileResponseMessage extends Message{
-    String fileName;
-    byte[] fileData;
+    public String fileName;
+    public byte[] fileData;
 
     public FileResponseMessage(String messageType, String fileName, byte[] fileData) {
         super(messageType);

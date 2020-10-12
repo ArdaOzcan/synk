@@ -10,6 +10,8 @@ import com.google.gson.JsonSyntaxException;
 
 import org.ardaozcan.Manager;
 import org.ardaozcan.io.Logger;
+import org.ardaozcan.net.message.FileResponseMessage;
+import org.ardaozcan.net.message.RequestMessage;
 
 public class Client {
     ClientData socket;

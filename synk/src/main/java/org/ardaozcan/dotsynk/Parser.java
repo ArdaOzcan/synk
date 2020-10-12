@@ -22,6 +22,12 @@ public class Parser {
                 case "code":
                     conf.code = value;
                     break;
+                case "name":
+                    conf.name = value;
+                    break;
+                case "version":
+                    conf.version = value;
+                    break;
             }
         }
 

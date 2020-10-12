@@ -1,7 +1,7 @@
-package org.ardaozcan.net;
+package org.ardaozcan.net.message;
 
 public class Message {
-    String messageType;
+    public String messageType;
 
     public Message(String messageType) {
         this.messageType = messageType;

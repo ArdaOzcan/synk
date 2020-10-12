@@ -1,8 +1,8 @@
-package org.ardaozcan.net;
+package org.ardaozcan.net.message;
 
 public class RequestMessage extends Message{
 
-    String code = null;
+    public String code = null;
 
     public RequestMessage(String messageType) {
         super(messageType);
