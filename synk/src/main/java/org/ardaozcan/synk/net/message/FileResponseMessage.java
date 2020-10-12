@@ -1,6 +1,6 @@
-package org.ardaozcan.net.message;
+package org.ardaozcan.synk.net.message;
 
-public class FileResponseMessage extends Message{
+public class FileResponseMessage extends Message {
     public String fileName;
     public byte[] fileData;
 

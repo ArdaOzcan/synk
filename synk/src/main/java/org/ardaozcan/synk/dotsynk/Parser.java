@@ -1,4 +1,4 @@
-package org.ardaozcan.dotsynk;
+package org.ardaozcan.synk.dotsynk;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,8 +16,8 @@ public class Parser {
     public Config parse() throws IOException {
         Config conf = new Config();
         for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-            String key = line.split(":")[0];
-            String value = line.split(":")[1];
+            String key = line.split(":")[0].trim();
+            String value = line.split(":")[1].trim();
             switch (key) {
                 case "code":
                     conf.code = value;

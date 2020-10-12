@@ -1,4 +1,4 @@
-package org.ardaozcan.net;
+package org.ardaozcan.synk.net;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -6,8 +6,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import org.ardaozcan.Manager;
-import org.ardaozcan.io.Logger;
+import org.ardaozcan.synk.Manager;
+import org.ardaozcan.synk.io.Logger;
 
 public class Server {
     public final String IP;

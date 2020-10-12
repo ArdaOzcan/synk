@@ -1,4 +1,4 @@
-package org.ardaozcan.net;
+package org.ardaozcan.synk.net;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,12 +10,12 @@ import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import org.ardaozcan.Manager;
-import org.ardaozcan.io.FileManager;
-import org.ardaozcan.io.Logger;
-import org.ardaozcan.net.message.FileResponseMessage;
-import org.ardaozcan.net.message.RequestMessage;
-import org.ardaozcan.net.message.ServerInformationResponseMessage;
+import org.ardaozcan.synk.Manager;
+import org.ardaozcan.synk.io.FileManager;
+import org.ardaozcan.synk.io.Logger;
+import org.ardaozcan.synk.net.message.FileResponseMessage;
+import org.ardaozcan.synk.net.message.RequestMessage;
+import org.ardaozcan.synk.net.message.ServerInformationResponseMessage;
 
 public class ClientThread extends Thread {
     final ClientData client;
@@ -66,7 +66,7 @@ public class ClientThread extends Thread {
                         authenticated = hashed.trim().equals(manager.config.code.trim());
                         break;
                     case "getServerInformation":
-                        sendServerInformation(new ServerInformation(client.ip, manager.config));
+                        sendServerInformation(new ServerInformation(client.ip, manager.config.name, manager.VERSION));
                         break;
                 }
             } catch (JsonSyntaxException e) {
@@ -74,9 +74,9 @@ public class ClientThread extends Thread {
             }
         } catch (IOException | NumberFormatException e) {
             return;
-        } 
+        }
 
-        if(!authenticated) {
+        if (!authenticated) {
             return;
         }
 
@@ -84,7 +84,6 @@ public class ClientThread extends Thread {
 
         while (running && authenticated) {
             try {
-                Logger.logInfo("Waiting for client...");
                 byte[] msg = client.receive();
 
                 try {

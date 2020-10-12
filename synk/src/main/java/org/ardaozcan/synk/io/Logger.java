@@ -1,4 +1,4 @@
-package org.ardaozcan.io;
+package org.ardaozcan.synk.io;
 
 public class Logger {
     public static String colored(String msg, Color color) {

@@ -1,4 +1,4 @@
-package org.ardaozcan.dotsynk;
+package org.ardaozcan.synk.dotsynk;
 
 public class Config {
     public String version;

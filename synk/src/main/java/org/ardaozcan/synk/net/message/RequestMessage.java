@@ -1,6 +1,6 @@
-package org.ardaozcan.net.message;
+package org.ardaozcan.synk.net.message;
 
-public class RequestMessage extends Message{
+public class RequestMessage extends Message {
 
     public String code = null;
 

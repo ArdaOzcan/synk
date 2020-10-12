@@ -1,4 +1,4 @@
-package org.ardaozcan.net;
+package org.ardaozcan.synk.net;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,7 +13,7 @@ public class ClientData {
 
     public ClientData(Socket socket) throws IOException {
         this.socket = socket;
-        this.ip = "" + socket.getInetAddress();
+        this.ip = socket.getInetAddress().toString().substring(1);
         this.input = socket.getInputStream();
         this.output = socket.getOutputStream();
     }

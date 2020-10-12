@@ -1,6 +1,6 @@
-package org.ardaozcan.net.message;
+package org.ardaozcan.synk.net.message;
 
-import org.ardaozcan.net.ServerInformation;
+import org.ardaozcan.synk.net.ServerInformation;
 
 public class ServerInformationResponseMessage extends Message {
 
@@ -18,5 +18,5 @@ public class ServerInformationResponseMessage extends Message {
         this.name = name;
         this.version = version;
     }
-    
+
 }

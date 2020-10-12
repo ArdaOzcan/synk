@@ -1,10 +1,10 @@
-package org.ardaozcan;
+package org.ardaozcan.synk;
 
 import java.io.IOException;
 
 public class App {
     public static void main(String[] args) {
-        String path = "sample";
+        String path = "sample2";
         if (args.length > 0) {
             path = args[0];
         }

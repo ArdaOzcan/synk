@@ -1,4 +1,4 @@
-package org.ardaozcan.io;
+package org.ardaozcan.synk.io;
 
 enum Color {
     //Color end string, color reset

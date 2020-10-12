@@ -1,9 +1,7 @@
-package org.ardaozcan.net;
-
-import org.ardaozcan.dotsynk.Config;
+package org.ardaozcan.synk.net;
 
 public class ServerInformation {
-    String ip;
+    public String ip;
     public String name;
     public String version;
 
@@ -13,14 +11,8 @@ public class ServerInformation {
         this.version = version;
     }
 
-    public ServerInformation(String ip, Config config) {
-        this.ip = ip;
-        name = config.name;
-        version = config.version;
-    }
-
     @Override
     public String toString() {
-        return String.format("%s (%s) : %s", name, ip ,version);
+        return String.format("%s (%s) : %s", name, ip, version);
     }
 }

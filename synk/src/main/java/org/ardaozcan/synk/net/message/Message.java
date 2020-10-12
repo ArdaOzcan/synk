@@ -1,4 +1,4 @@
-package org.ardaozcan.net.message;
+package org.ardaozcan.synk.net.message;
 
 public class Message {
     public String messageType;
