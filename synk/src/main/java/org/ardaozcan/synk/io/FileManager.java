@@ -7,23 +7,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.google.common.hash.Hashing;
 
 public class FileManager {
-	public static List<File> getFilesInDirectory(final File directoryPath) {
-		List<File> files = new ArrayList<File>();
-		for (final File fileEntry : directoryPath.listFiles()) {
-			if (fileEntry.isDirectory()) {
-				getFilesInDirectory(fileEntry);
-			} else {
-				files.add(fileEntry);
-			}
-		}
-
-		return files;
+	public static String getRelativePath(String base, String path) {
+		return new File(base).toURI().relativize(new File(path).toURI()).getPath();
 	}
 
 	public static void initializeDirectory(Path dotSynkPath) throws FileNotFoundException, IOException {

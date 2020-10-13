@@ -4,7 +4,7 @@ import java.io.IOException;
 
 public class App {
     public static void main(String[] args) {
-        String path = "sample2";
+        String path = "copy";
         if (args.length > 0) {
             path = args[0];
         }

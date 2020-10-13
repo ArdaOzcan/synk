@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
@@ -29,10 +32,10 @@ public class ClientThread extends Thread {
     }
 
     void sendFile(File file) throws IOException {
-        String fileName = file.getName();
+        String relativePath = FileManager.getRelativePath(manager.ROOT_PATH, file.getAbsolutePath().toString());
         byte[] fileData = Files.readAllBytes(file.toPath());
 
-        String msg = new Gson().toJson(new FileResponseMessage("file", fileName, fileData));
+        String msg = new Gson().toJson(new FileResponseMessage("file", relativePath, fileData));
         client.send(msg);
     }
 
@@ -40,8 +43,25 @@ public class ClientThread extends Thread {
         client.send(new Gson().toJson(new ServerInformationResponseMessage(info)));
     }
 
+    public List<File> getFilesInDirectory(final File directoryPath, String relative) {
+        List<File> files = new ArrayList<File>();
+        for (final File fileEntry : directoryPath.listFiles()) {
+            if (fileEntry.isDirectory()) {
+                for (File file : getFilesInDirectory(fileEntry, Paths.get(relative, fileEntry.getName()).toString())) {
+                    files.add(file);
+                }
+            } else {
+                files.add(fileEntry);
+            }
+        }
+
+        System.out.println(files);
+        return files;
+    }
+
     void sendDirectory() throws IOException {
-        for (File file : FileManager.getFilesInDirectory(new File(manager.ROOT_PATH))) {
+        File dir = new File(manager.ROOT_PATH);
+        for (File file : getFilesInDirectory(dir, "")) {
             if (!file.getName().equals(manager.DOT_SYNK_FILENAME)) {
                 sendFile(file);
             }

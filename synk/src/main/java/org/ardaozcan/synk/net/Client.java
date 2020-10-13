@@ -3,6 +3,8 @@ package org.ardaozcan.synk.net;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.google.gson.Gson;
@@ -56,8 +58,9 @@ public class Client {
 
                                 Logger.logInfo("Got file " + fileResponse.fileName);
 
-                                String filePath = Paths.get(manager.ROOT_PATH, fileResponse.fileName).toString();
-                                try (FileOutputStream fos = new FileOutputStream(filePath)) {
+                                Path filePath = Paths.get(manager.ROOT_PATH, fileResponse.fileName);
+                                Files.createDirectories(filePath.getParent());
+                                try (FileOutputStream fos = new FileOutputStream(filePath.toString())) {
                                     fos.write(fileResponse.fileData);
                                 }
                             }
