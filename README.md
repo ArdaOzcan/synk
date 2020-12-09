@@ -14,6 +14,17 @@ name.
 
 * Synk connections are __not__ yet encrypted. Only using in your private LAN is recommended.
 
+# Downloading Release
+Go to [releases](https://github.com/ArdaOzcan/synk/releases) and download the jar.
+
+Go to the folder of your .jar and run
+
+`java -jar synk-0.0.1-jar-with-dependencies.jar`
+
+or create a script running the jar and add it to your PATH
+to use synk from anywhere.
+
+
 # Downloading the Source
 Run this if you have git installed
 
