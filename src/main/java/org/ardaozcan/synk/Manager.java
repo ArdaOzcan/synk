@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -24,12 +25,13 @@ import org.ardaozcan.synk.net.message.RequestMessage;
 import org.ardaozcan.synk.net.message.ServerInformationResponseMessage;
 import org.ardaozcan.synk.net.ServerInformation;
 import org.ardaozcan.synk.net.ServerThread;
+import org.ardaozcan.synk.net.Utils;
 
 public class Manager {
 
     public final String ROOT_PATH;
     public final String DOT_SYNK_FILENAME = ".synk";
-    public final int PORT = 4902;
+    public final int PORT = 5435;
     public final String VERSION = "v1.0";
 
     public Config config;
@@ -54,57 +56,91 @@ public class Manager {
         executeCommand();
     }
 
+    public Commands getCommandByString(String str) {
+        switch (str) {
+            case "exit":
+                return Commands.EXIT;
+            case "serve":
+                return Commands.SERVE;
+            case "connect":
+                return Commands.CONNECT;
+            case "synk":
+                return Commands.SYNK;
+            case "list":
+                return Commands.LIST;
+            default:
+                return Commands.UNDEFINED;
+        }
+    }
+
     public void executeCommand() {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             String input = scanner.nextLine();
             String[] args = input.split(" ");
-            if (args.length == 0) {         
+            if (args.length == 0) {
                 continue;
             }
-            String cmd = args[0];
-            if (cmd != null) {
-                switch (cmd) {
-                    case "exit":
-                        scanner.close();
-                        return;
-                    case "serve":
-                        if (args.length < 2) {
-                            new ServerThread(null, PORT, this).start();
-                        } else {
-                            new ServerThread(args[1], PORT, this).start();
+            String cmdStr = args[0];
+            Commands cmd = getCommandByString(cmdStr);
+            switch (cmd) {
+                case EXIT:
+                    scanner.close();
+                    return;
+                case SERVE:
+                    if (args.length < 2) {
+                        new ServerThread(null, PORT, this).start();
+                    } else {
+                        new ServerThread(args[1], PORT, this).start();
+                    }
+                    break;
+                case CONNECT:
+                    try {
+                        if (this.client == null) {
+                            this.client = new Client(this);
                         }
-                        break;
-                    case "connect":
-                        try {
-                            if (this.client == null) {
-                                this.client = new Client(this);
+
+                        if (args.length < 2) {
+                            Logger.logError("No argument for 'IP' was found. Skipping...");
+                            break;
+                        }
+
+                        String nameOrIP = args[1];
+                        String ip = nameOrIP;
+
+                        List<ServerInformation> infos = getServerInformations();
+                        if (!Utils.validIP(nameOrIP)) {
+                            for (ServerInformation info : infos) {
+                                if (info.name.equals(nameOrIP))
+                                    ip = info.ip;
                             }
 
-                            if (args.length < 2) {
-                                Logger.logError("No argument for 'IP' was found. Skipping...");
+                            if(ip.equals(nameOrIP))
+                            {
+                                Logger.logError(ip + " is not a valid server name or ip.");
                                 break;
                             }
+                        }
 
-                            client.connect(args[1], PORT);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                    case "get":
-                        if (client != null) {
-                            client.get();
-                        } else {
-                            Logger.logError("You are not connected to any servers.");
-                        }
-                        break;
-                    case "list":
-                        listAvailableServers();
-                        break;
-                    default:
-                        Logger.logError("Command '" + cmd + "' is not available");
-                }
+                        client.connect(ip, PORT);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case SYNK:
+                    if (client != null) {
+                        client.synk();
+                    } else {
+                        Logger.logError("You are not connected to any servers.");
+                    }
+                    break;
+                case LIST:
+                    listAvailableServers();
+                    break;
+                default:
+                    Logger.logError("Command '" + cmd + "' is not available");
             }
+
         }
     }
 
@@ -167,18 +203,25 @@ public class Manager {
             final int j = i;
             lastThread = new Thread(new Runnable() {
                 public void run() {
+                    ip[3] = (byte) j;
+                    InetAddress address;
                     try {
-                        ip[3] = (byte) j;
-                        InetAddress address = InetAddress.getByAddress(ip);
+                        address = InetAddress.getByAddress(ip);
                         String output = address.toString().substring(1);
 
-                        if (address.isReachable(5000)) {
-                            ServerInformation si = synkServerOpen(output);
-                            if (si != null) {
-                                infos.add(si);
+                        try {
+                            if (address.isReachable(5000)) {
+                                ServerInformation si = synkServerOpen(output);
+                                if (si != null) {
+                                    infos.add(si);
+                                }
                             }
+                        } catch (IOException b) {
+                            return;
                         }
-                    } catch (Exception e) {
+
+                    } catch (UnknownHostException e) {
+                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
                 }

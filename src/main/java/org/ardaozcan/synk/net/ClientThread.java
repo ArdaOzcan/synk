@@ -17,6 +17,7 @@ import org.ardaozcan.synk.Manager;
 import org.ardaozcan.synk.io.FileManager;
 import org.ardaozcan.synk.io.Logger;
 import org.ardaozcan.synk.net.message.FileResponseMessage;
+import org.ardaozcan.synk.net.message.Message;
 import org.ardaozcan.synk.net.message.RequestMessage;
 import org.ardaozcan.synk.net.message.ServerInformationResponseMessage;
 
@@ -94,11 +95,18 @@ public class ClientThread extends Thread {
             return;
         }
 
-        if (!authenticated) {
+        try {
+            if (!authenticated) {
+                client.send(new Gson().toJson(new Message("rejected")));
+                return;
+            }
+
+            Logger.logInfo("Started thread for " + client.ip);
+            client.send(new Gson().toJson(new Message("authenticated")));
+        } catch (IOException e2) {
+            e2.printStackTrace();
             return;
         }
-
-        Logger.logInfo("Started thread for " + client.ip);
 
         while (running && authenticated) {
             try {

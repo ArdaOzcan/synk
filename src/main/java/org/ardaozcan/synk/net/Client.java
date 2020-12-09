@@ -13,6 +13,7 @@ import com.google.gson.JsonSyntaxException;
 import org.ardaozcan.synk.Manager;
 import org.ardaozcan.synk.io.Logger;
 import org.ardaozcan.synk.net.message.FileResponseMessage;
+import org.ardaozcan.synk.net.message.Message;
 import org.ardaozcan.synk.net.message.RequestMessage;
 
 public class Client {
@@ -31,15 +32,21 @@ public class Client {
         authenticate(System.console().readLine("Directory pass: "));
     }
 
-    public String read(String msg) throws IOException {
-        return this.socket.input.readAllBytes().toString();
-    }
-
     public void authenticate(String code) throws IOException {
         socket.send(new Gson().toJson(new RequestMessage("authenticate", code)));
+        byte[] response = socket.receive();
+        Message responseMsg = new Gson().fromJson(new String(response), Message.class);
+        if(responseMsg.messageType.equals("authenticated"))
+        {
+            Logger.logInfo("Authenticated on server " + socket.ip);
+        }
+        else if(responseMsg.messageType.equals("rejected"))
+        {
+            Logger.logError("Rejected to server " + socket.ip);
+        }
     }
 
-    public void get() {
+    public void synk() {
         try {
             socket.send(new Gson().toJson(new RequestMessage("getDirectory")));
             boolean eof = false;
