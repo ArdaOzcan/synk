@@ -171,6 +171,7 @@ public class Manager {
                         ip[3] = (byte) j;
                         InetAddress address = InetAddress.getByAddress(ip);
                         String output = address.toString().substring(1);
+
                         if (address.isReachable(5000)) {
                             ServerInformation si = synkServerOpen(output);
                             if (si != null) {

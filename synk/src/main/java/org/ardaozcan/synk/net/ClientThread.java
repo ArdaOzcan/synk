@@ -55,7 +55,6 @@ public class ClientThread extends Thread {
             }
         }
 
-        System.out.println(files);
         return files;
     }
 
@@ -81,7 +80,6 @@ public class ClientThread extends Thread {
 
                 switch (requestMsg.messageType) {
                     case "authenticate":
-                        System.out.println();
                         String hashed = Hashing.sha256().hashString(requestMsg.code, StandardCharsets.UTF_8).toString();
                         authenticated = hashed.trim().equals(manager.config.code.trim());
                         break;
